@@ -78,8 +78,6 @@ cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 ```
 - `cv2.VideoCapture(0)`: 웹캠을 열고, 첫 번째 카메라 장치를 사용
 - 카메라의 해상도를 640x480으로 설정하여 웹캠에서 프레임을 캡처
-- face_recognition.face_encodings(img): 주어진 이미지에서 얼굴을 인식하고, 128D 임베딩 벡터를 반환
-- 여러 이미지를 로드하여 등록된 사용자 얼굴 정보를 인코딩하고 리스트에 저장
 
 ### 3. 등록된 얼굴 이미지 로드/ 인코딩
 ```python

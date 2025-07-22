@@ -70,7 +70,19 @@ import numpy as np
 - PIL: 텍스트 출력 및 이미지 처리를 위해 사용
 - numpy: 얼굴 인식의 유사도를 계산하는 데 사용
 
-**2. 기준 이미지 인코딩/로드 함수**
+### 2. 웹캠 설정
+```python
+cap = cv2.VideoCapture(0)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+```
+- `cv2.VideoCapture(0)`: 웹캠을 열고, 첫 번째 카메라 장치를 사용
+- 카메라의 해상도를 640x480으로 설정하여 웹캠에서 프레임을 캡처
+
+- face_recognition.face_encodings(img): 주어진 이미지에서 얼굴을 인식하고, 128D 임베딩 벡터를 반환
+- 여러 이미지를 로드하여 등록된 사용자 얼굴 정보를 인코딩하고 리스트에 저장
+
+### 3. 기준 이미지 인코딩/로드 함수
 ```python
 def load_target_encodings(folder):
     encodings = []
@@ -87,37 +99,55 @@ def load_target_encodings(folder):
         raise Exception("기준 이미지에서 얼굴을 찾지 못했습니다.")
     return encodings
 ```
-- `face_recognition.face_encodings(img)`: 주어진 이미지에서 얼굴을 인식하고, 128D 임베딩 벡터를 반환합니다.
+- 지정된 폴더 안의 모든 이미지 파일을 순차적으로 처리하고, 각 이미지에서 얼굴을 찾고 인식함
+- `face_recognition.face_encodings(img)`: 이후 얼굴 인식에 사용할 수 있도록 얼굴 특징을 벡터화한 데이터를 반환
 - 여러 이미지를 로드하여 등록된 사용자 얼굴 정보를 인코딩하고 리스트에 저장합니다.
 
-**128D 임베딩?**
+>**얼굴 인코딩?**
+><br>얼굴 이미지를 128개의 숫자로 수치화한 것 (128D 임베딩 벡터)<br>이 벡터들은 얼굴 인식 시스템에서 얼굴 비교나 식별을 위해 사용됨<br>두 개의 얼굴이 같은지 비교하려면, 두 벡터 간 거리를 계산해서 유사도를 확인함<br>동일한 사람의 얼굴은 비슷한 벡터값을 가지고, 서로 다른 사람의 얼굴은 벡터 간 거리가 멀어짐
 
 
-**3. 웹캠 설정**
+
+### 얼굴 인식 및 문 제어
 ```python
-cap = cv2.VideoCapture(0)
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        print("프레임을 가져올 수 없습니다.")
+        break
+
+    current_time = time.time()
+    display_frame = frame.copy()
+    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    height, width = frame.shape[:2]
+    center_x, center_y = width // 2, height // 2
+
+    cv2.rectangle(display_frame, 
+                  (center_x - CENTER_TOLERANCE, center_y - CENTER_TOLERANCE),
+                  (center_x + CENTER_TOLERANCE, center_y + CENTER_TOLERANCE),
+                  (255, 255, 0), 2)
 ```
-- `cv2.VideoCapture(0)`: 웹캠을 열고, 첫 번째 카메라 장치를 사용
-- 카메라의 해상도를 640x480으로 설정하여 웹캠에서 프레임을 캡처
+- 웹캠으로부터 프레임을 읽고, 얼굴을 인식할 준비를 함
+- 중앙 가이드 박스를 표시하여 사용자가 얼굴을 화면 중앙에 맞추도록 유도함
 
-- face_recognition.face_encodings(img): 주어진 이미지에서 얼굴을 인식하고, 128D 임베딩 벡터를 반환
-- 여러 이미지를 로드하여 등록된 사용자 얼굴 정보를 인코딩하고 리스트에 저장
-
-**3. 얼굴 인식 및 등록 여부 확인**
+### 3. 얼굴 인식 및 등록 여부 확인
 ```python
 face_locations = face_recognition.face_locations(rgb_frame)
 face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
+
+for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
+    distances = face_recognition.face_distance(target_encodings, face_encoding)
+    min_distance = np.min(distances)
+    is_registered = min_distance < 0.2
 ```
-- 얼굴 위치 및 인코딩: `face_recognition.face_locations`로 얼굴 위치를 찾고, `face_recognition.face_encodings`로 얼굴 특징을 추출하여 등록된 얼굴들과 비교
+- `face_recognition.face_locations`: 얼굴의 위치를 반환
+- `face_recognition.face_distance`: 얼굴 인식 벡터와 등록된 벡터 간의 유사도를 계산하여, 일정 거리 내에 있으면 등록된 사용자로 판단
 
-**4. 도어락 제어**
-
-**5. 메시지 출력**
+### 5. 메시지 출력
 ```python
 if is_registered and in_center:
     status_text = "등록자 확인 - 문이 열립니다"
+    relay.on()
     last_grant_time = current_time
 elif not is_registered:
     status_text = "등록되지 않은 사용자입니다"
@@ -126,11 +156,13 @@ elif not in_center:
     status_text = "얼굴을 가운데로 이동하세요"
     status_color = (255, 140, 0)
 ```
-- 알림 출력: 사용자가 등록된 경우와 등록되지 않은 경우 각각에 대한 알림을 출력하고, 화면에 상태 메시지를 표시
+- 등록된 사용자인 경우 릴레이를 ON하여 문을 연다
+- 등록되지 않은 사용자에게는 경고 메시지를 출력함
 
-**6. 시스템 종료**
+### 자동 문 닫기
 ```python
-cap.release()
-cv2.destroyAllWindows()
+if last_grant_time != 0 and current_time - last_grant_time > DOOR_OPEN_DURATION:
+    relay.off()
+    last_grant_time = 0
 ```
-- 시스템 종료: 프로그램이 종료될 때 웹캠을 해제하고, OpenCV 창을 닫음
+- 문을 열고 일정 시간이 지난 후 자동으로 닫기: 설정된 시간이 지난 후 릴레이를 OFF하여 문을 닫습니다.

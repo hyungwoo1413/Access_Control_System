@@ -44,8 +44,7 @@ pip install imutils
 ```
 
 >**dlib?**
->C++ 기반의 머신러닝 알고리즘 및 도구 모음 라이브러리. 
->파이썬에서 사용할 수 있도록 Python 바인딩도 제공됨.
+><br>C++ 기반의 머신러닝 알고리즘 및 도구 모음 라이브러리.<br>파이썬에서 사용할 수 있도록 Python 바인딩도 제공됨.
 >- 얼굴 탐지 (face detection)
 >- 얼굴 랜드마크 추출 (68 or 5 points)
 >- 얼굴 인식 (face recognition)

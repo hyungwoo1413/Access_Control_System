@@ -54,7 +54,7 @@ pip install imutils
 
 
 ## 코드 설명
-**1. 라이브러리**
+### 1. 라이브러리
 ```python
 import cv2
 import face_recognition

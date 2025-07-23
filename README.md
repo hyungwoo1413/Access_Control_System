@@ -103,7 +103,7 @@ def load_target_encodings(folder):
 >**임베딩?**
 ><br>임베딩이란 얼굴 이미지를 128개의 숫자로 수치화한 128차원 벡터를 말함<br>이 임베딩 벡터는 얼굴 인식 시스템에서 얼굴을 비교하거나 식별하는 데 사용됨<br>두 개의 얼굴이 같은 사람인지 비교하려면, 두 벡터 간의 거리를 계산하여 유사도를 확인함<br>같은 사람의 얼굴은 비슷한 벡터값을 가지고, 서로 다른 사람의 얼굴은 벡터 간 거리가 멀어짐
 
-### 얼굴 인식 및 문 제어
+### 4. 얼굴 인식 및 문 제어
 ```python
 while True:
     ret, frame = cap.read()
@@ -125,7 +125,7 @@ while True:
 - 웹캠으로부터 프레임을 읽고, 얼굴을 인식할 준비를 함
 - 중앙 가이드 박스를 표시하여 사용자가 얼굴을 화면 중앙에 맞추도록 유도함
 
-### 3. 얼굴 인식 및 등록 여부 확인
+### 5. 얼굴 인식 및 등록 여부 확인
 ```python
 face_locations = face_recognition.face_locations(rgb_frame)
 face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
@@ -138,7 +138,7 @@ for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodi
 - `face_recognition.face_locations`: 얼굴의 위치를 반환
 - `face_recognition.face_distance`: 얼굴 인식 벡터와 등록된 벡터 간의 유사도를 계산하여, 일정 거리 내에 있으면 등록된 사용자로 판단
 
-### 5. 메시지 출력
+### 6. 메시지 출력
 ```python
 if is_registered and in_center:
     status_text = "등록자 확인 - 문이 열립니다"
@@ -154,7 +154,7 @@ elif not in_center:
 - 등록된 사용자인 경우 릴레이를 ON하여 문을 연다
 - 등록되지 않은 사용자에게는 경고 메시지를 출력함
 
-### 자동 문 닫기
+### 7. 자동 문 닫기
 ```python
 if last_grant_time != 0 and current_time - last_grant_time > DOOR_OPEN_DURATION:
     relay.off()
